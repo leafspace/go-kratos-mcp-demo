@@ -2,6 +2,43 @@
 
 简短说明：本项目演示如何用 Go-Kratos 框架结合 MCP（模块化协同协议）构建可扩展、可观测的推荐服务，包含召回 / 过滤 / 排序等模块化流程与测试范例。
 
+**原仓库地址：[github.com/tx7do/go-kratos-mcp-demo](https://github.com/tx7do/go-kratos-mcp-demo)**
+
+## 功能增强
+
+本 fork 在 [原仓库](https://github.com/tx7do/go-kratos-mcp-demo) 基础上做了以下增强：
+
+### 1. grpc-gateway 多协议兼容
+
+新增 `grpc-gateway` 反向代理层，同一份 proto 生成 gRPC、HTTP（REST）两套入口，通过 h2c 在单端口（默认 `:8000`）按 `Content-Type: application/grpc` 自动分流。原仓库仅支持独立的 gRPC Server + Kratos HTTP Server，本 fork 统一为一个 Gateway Server。
+
+### 2. protoc-gen-go-mcp 自动生成 MCP Tool
+
+集成 `protoc-gen-go-mcp`（[leafspace fork](https://github.com/leafspace/protoc-gen-go-mcp)），从 proto 的 `service` / `rpc` / `message` 定义自动生成：
+- MCP Tool 的 InputSchema / OutputSchema
+- JSON 请求解码与 protobuf 响应编码
+- `Register*ServiceMCPHandler` 注册函数
+
+业务层只需实现 service 方法，不再手写 `mcp.Tool` 结构体。
+
+### 3. (mcp.v1.desc) 字段描述注解
+
+通过 `leafspace/protoc-gen-go-mcp` 扩展的 `(mcp.v1.desc)` field option，在 proto 字段上直接标注描述文字，生成的 MCP Tool Schema 同时包含字段类型与字段说明，无需额外维护 Schema 文档。
+
+```proto
+message RecommendRequest {
+  UserActionContext action_ctx = 1 [(mcp.v1.desc) = "用户行为上下文"];
+}
+```
+
+### 4. 配置驱动架构
+
+扩展了 config proto `recommend.proto`，新增 `Gateway` 和 `Mcp` 的地址/类型/名称/版本字段，所有服务端口通过 `configs/recommend.yaml` 注入，不再硬编码。
+
+### 5. MCP 符号隔离（perl 后处理）
+
+`protoc-gen-go-mcp` 生成的符号（`Server` / `Client` / `Handler`）可能与 gRPC/gateway 生成代码同名冲突。`make api` 自动执行 perl 后处理，统一给 MCP 符号加 `MCP` 后缀（如 `RegisterRecommendServiceMCPHandler`），实现零冲突共存。
+
 ## 核心特性
 
 - 标准化契约：以 Protobuf 定义服务与上下文，便于多语言客户端与版本管理。
@@ -110,8 +147,8 @@ message RecommendRequest {
 
 ## 项目链接
 
-- GitHub项目地址: <https://github.com/tx7do/go-kratos-mcp-demo>
-- Gitee项目地址: <https://gitee.com/tx7do/go-kratos-mcp-demo>
-- MCP 协议封装库: <https://github.com/mark3labs/mcp-go>
+- GitHub项目地址: [https://github.com/tx7do/go-kratos-mcp-demo](https://github.com/tx7do/go-kratos-mcp-demo)
+- Gitee项目地址: [https://gitee.com/tx7do/go-kratos-mcp-demo](https://gitee.com/tx7do/go-kratos-mcp-demo)
+- MCP 协议封装库: [https://github.com/mark3labs/mcp-go](https://github.com/mark3labs/mcp-go)
 - Kratos Transport MCP 扩展: [github.com/tx7do/kratos-transport/transport/mcp](https://github.com/tx7do/kratos-transport/tree/main/transport/mcp)
-- protoc-gen-go-mcp (leafspace fork): <https://github.com/leafspace/protoc-gen-go-mcp>
+- protoc-gen-go-mcp (leafspace fork): [https://github.com/leafspace/protoc-gen-go-mcp](https://github.com/leafspace/protoc-gen-go-mcp)
