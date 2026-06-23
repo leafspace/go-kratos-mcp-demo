@@ -1,6 +1,8 @@
-﻿syntax = "proto3";
+syntax = "proto3";
 
 package conf;
+
+option go_package = "go-kratos-mcp-demo/api/gen/go/conf;conf";
 
 // Recommend 配置顶层结构
 message RecommendConfig {
@@ -9,11 +11,21 @@ message RecommendConfig {
 
   Mcp mcp = 3;
   Service service = 4;
+  Gateway gateway = 5;
 
-  // mcp 相关配置
+  // gRPC + HTTP Gateway 服务器配置
+  message Gateway {
+    string addr = 1;
+  }
+
+  // MCP 相关配置
   message Mcp {
     Server server = 1;
     Context context = 2;
+    string addr = 3;    // MCP 服务地址，如 ":8080"
+    string type = 4;    // MCP 服务类型: stdio/sse/http
+    string name = 5;    // MCP 服务名称（客户端可见）
+    string version = 6; // MCP 服务版本
   }
 
   message Server {
@@ -48,4 +60,3 @@ message RecommendConfig {
     repeated int64 blacklist = 1;
   }
 }
-

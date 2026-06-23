@@ -22,9 +22,9 @@ func initApp(logger log.Logger, recommendConfig *conf.RecommendConfig) (*kratos.
 	rankService := service.NewRankService(logger, recommendConfig)
 	filterService := service.NewFilterService(logger, recommendConfig)
 	recommendService := service.NewRecommendService(logger, recallService, rankService, filterService)
-	mcpServer := server.NewMcpServer(logger, recommendService)
-	httpServer := server.NewRESTServer(logger, recommendService)
-	app := newApp(logger, mcpServer, httpServer)
+	mcpServer := server.NewMcpServer(recommendConfig, logger, recommendService)
+	grpcGatewayServer := server.NewGRPCGatewayServer(recommendConfig, logger, recommendService)
+	app := newApp(logger, mcpServer, grpcGatewayServer)
 	return app, func() {
 	}, nil
 }

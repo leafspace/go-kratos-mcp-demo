@@ -31,11 +31,24 @@ plugins:
     opt:
       - paths=source_relative # use relative paths
 
+  # generate grpc-gateway reverse proxy code
+  - local: protoc-gen-grpc-gateway
+    out: gen/go
+    opt:
+      - paths=source_relative # use relative paths
+
   # generate rest service code
   - local: protoc-gen-go-http
     out: gen/go
     opt:
       - paths=source_relative # use relative paths
+
+  # generate MCP tool registration code
+  - local: protoc-gen-go-mcp
+    out: gen/go
+    opt:
+      - paths=source_relative
+      - package_suffix=
 
   # generate kratos errors code
   - local: protoc-gen-go-errors

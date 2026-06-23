@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package mcp.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/leafspace/protoc-gen-go-mcp/pkg/mcpv1;mcpv1";
+
+extend google.protobuf.MethodOptions {
+  string tool_name = 58800;
+}
+
+extend google.protobuf.FieldOptions {
+  string desc = 58801;
+}

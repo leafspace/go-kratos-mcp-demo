@@ -11,44 +11,48 @@ import (
 	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/assert"
+
+	"go-kratos-mcp-demo/api/gen/go/conf"
+	recommendV1 "go-kratos-mcp-demo/api/gen/go/recommend/service/v1"
 )
 
-func TestRecommendService_HandleRecommend(t *testing.T) {
+func TestRecommendService_TriggerRecommend(t *testing.T) {
 	// 准备依赖服务
 	logger := log.DefaultLogger
-	recallService := NewRecallService(logger, nil)
-	rankService := NewRankService(logger, nil)
-	filterService := NewFilterService(logger, nil)
+	rc := testRecommendConfig()
+	recallService := NewRecallService(logger, rc)
+	rankService := NewRankService(logger, rc)
+	filterService := NewFilterService(logger, rc)
 
 	// 创建推荐服务
 	service := NewRecommendService(logger, recallService, rankService, filterService)
 
-	// 构造 MCP 请求
-	request := mcp.CallToolRequest{
-		Params: mcp.CallToolParams{
-			Name: "recommend",
-			Arguments: map[string]interface{}{
-				"userFeature": map[string]interface{}{
-					"userId": "user123",
-				},
-				"triggerItemId": int64(1001),
-				"scene":         "homepage",
-				"actionType":    "click",
+	request := &recommendV1.RecommendRequest{
+		ActionCtx: &recommendV1.UserActionContext{
+			UserFeature: &recommendV1.UserFeature{
+				UserId: "user123",
 			},
+			TriggerItemId: 101,
+			Scene:         recommendV1.SceneType_SCENE_TYPE_HOME,
+			ActionType:    recommendV1.ActionType_ACTION_TYPE_CLICK,
 		},
 	}
 
 	// 执行测试
 	ctx := context.Background()
-	result, err := service.HandleRecommend(ctx, request)
+	result, err := service.TriggerRecommend(ctx, request)
 
 	// 断言结果
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.NotEmpty(t, result.Content)
+	assert.NotEmpty(t, result.GetRequestId())
+	assert.Equal(t, recommendV1.ContextStage_CONTEXT_STAGE_OUTPUT, result.GetOutput().GetStage())
+	assert.NotEmpty(t, result.GetOutput().GetRecommendItems())
 }
 
 func TestMcpClient(t *testing.T) {
+	t.Skip("integration test: start the demo server before running")
+
 	ctx := context.Background()
 
 	httpTransport, err := transport.NewStreamableHTTP("http://localhost:8080/mcp")
@@ -131,4 +135,14 @@ func TestMcpClient(t *testing.T) {
 	}
 
 	t.Logf("完整结果: %#v", result)
+}
+
+func testRecommendConfig() *conf.RecommendConfig {
+	return &conf.RecommendConfig{
+		Service: &conf.RecommendConfig_Service{
+			Recall: &conf.RecommendConfig_Recall{TopK: 50},
+			Rank:   &conf.RecommendConfig_Rank{TopK: 10},
+			Filter: &conf.RecommendConfig_Filter{Blacklist: []int64{999, 888}},
+		},
+	}
 }

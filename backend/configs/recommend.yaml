@@ -1,16 +1,25 @@
-﻿name: recommend-mcp-server
+name: recommend-mcp-server
 version: v1.0.0
+
+gateway:
+  addr: ":8000" # gRPC + HTTP Gateway 地址
+
 mcp:
+  addr: ":8080" # MCP 服务地址
+  type: "HTTP" # MCP 服务类型: stdio/sse/http
+  name: "Recommend MCP Server"
+  version: "1.0.0"
   server:
     start_timeout: "15s"
   context:
-    max_history_len: 10  # 用户历史行为最大缓存长度
+    max_history_len: 10 # 用户历史行为最大缓存长度
+
 service:
   recall:
-    top_k: 50  # 召回候选集大小
+    top_k: 50 # 召回候选集大小
   rank:
-    top_k: 10  # 排序后返回数量
+    top_k: 10 # 排序后返回数量
   filter:
     blacklist:
       - 999
-      - 888  # 黑名单商品ID
+      - 888 # 黑名单商品ID

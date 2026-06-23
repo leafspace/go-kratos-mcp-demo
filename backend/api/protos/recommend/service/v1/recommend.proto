@@ -4,6 +4,9 @@ package recommend.service.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
+import "mcp/v1/annotations.proto";
+
+option go_package = "go-kratos-mcp-demo/api/gen/go/recommend/service/v1;servicev1";
 
 // ------------------------------
 // 1. 枚举类型：定义固定选项,避免硬编码
@@ -158,7 +161,7 @@ service RecommendService {
 
 // 推荐请求
 message RecommendRequest {
-  UserActionContext action_ctx = 1; // 用户行为上下文
+  UserActionContext action_ctx = 1 [(mcp.v1.desc) = "用户行为上下文"]; // 用户行为上下文
 }
 
 // 推荐响应
@@ -169,11 +172,11 @@ message RecommendResponse {
 
 // 推荐历史请求
 message RecommendHistoryRequest {
-  string        user_id     = 1; // 用户ID
-  int32         page        = 2; // 页码（从1开始）
-  int32         page_size   = 3; // 每页数量
-  google.protobuf.Timestamp start_time = 4; // 开始时间（可选）
-  google.protobuf.Timestamp end_time   = 5; // 结束时间（可选）
+  string        user_id     = 1 [(mcp.v1.desc) = "用户ID"]; // 用户ID
+  int32         page        = 2 [(mcp.v1.desc) = "页码，从1开始"]; // 页码（从1开始）
+  int32         page_size   = 3 [(mcp.v1.desc) = "每页数量"]; // 每页数量
+  google.protobuf.Timestamp start_time = 4 [(mcp.v1.desc) = "开始时间，可选"]; // 开始时间（可选）
+  google.protobuf.Timestamp end_time   = 5 [(mcp.v1.desc) = "结束时间，可选"]; // 结束时间（可选）
 }
 
 // 推荐历史响应

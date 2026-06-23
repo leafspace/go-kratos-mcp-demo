@@ -8,6 +8,7 @@ endif
 
 CURRENT_DIR	:= $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 ROOT_DIR	:= $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+KRATOS_THIRD_PARTY := $(shell go env GOPATH)/pkg/mod/github.com/go-kratos/kratos/v2@v2.9.1/third_party
 
 SRCS_MK		:= $(foreach dir, app, $(wildcard $(dir)/*/*/Makefile))
 
@@ -46,10 +47,20 @@ lint:
 wire:
 	@go run -mod=mod github.com/google/wire/cmd/wire ./cmd/server
 
+# generate config proto go code
+config:
+	@protoc -I api/protos --go_out=paths=source_relative:api/gen/go api/protos/conf/recommend.proto
+
 # generate protobuf api go code
 api:
-	@cd api && \
-	buf generate
+	@protoc -I api/third_party -I api/protos -I $(KRATOS_THIRD_PARTY) \
+		--go_out=paths=source_relative:api/gen/go \
+		--go-grpc_out=paths=source_relative:api/gen/go \
+		--go-http_out=paths=source_relative:api/gen/go \
+		--grpc-gateway_out=paths=source_relative:api/gen/go \
+		--go-mcp_out=paths=source_relative,package_suffix=:api/gen/go \
+		api/protos/recommend/service/v1/recommend.proto
+	@perl -0pi -e 's/type RecommendServiceServer interface/type RecommendServiceMCPServer interface/g; s/srv RecommendServiceServer/srv RecommendServiceMCPServer/g; s/RegisterRecommendServiceHandler/RegisterRecommendServiceMCPHandler/g; s/type RecommendServiceClient interface/type RecommendServiceMCPClient interface/g; s/client RecommendServiceClient/client RecommendServiceMCPClient/g; s/type ConnectRecommendServiceClient interface/type ConnectRecommendServiceMCPClient interface/g; s/client ConnectRecommendServiceClient/client ConnectRecommendServiceMCPClient/g; s/ForwardToConnectRecommendServiceClient/ForwardToConnectRecommendServiceMCPClient/g; s/ForwardToRecommendServiceClient/ForwardToRecommendServiceMCPClient/g' api/gen/go/recommend/service/v1/recommend.pb.mcp.go
 
 # generate OpenAPI v3 docs.
 openapi:
@@ -57,7 +68,7 @@ openapi:
 	buf generate --template buf.openapi.gen.yaml
 
 # run application
-run: api openapi
+run: config api openapi
 	@go run ./cmd/server -conf ./configs
 
 # show help

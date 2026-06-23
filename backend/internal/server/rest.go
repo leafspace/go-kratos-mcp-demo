@@ -1,3 +1,6 @@
+// Deprecated: 此文件保留作为 Kratos HTTP 直连方式的参考实现。
+// 当前项目已改用 grpc-gateway（参见 grpc_gateway.go），不再使用此文件中的 NewRESTServer。
+// 如果将来需要回到 Kratos 原生 HTTP 方式（配合 *_http.pb.go），可参考此文件。
 package server
 
 import (
@@ -24,6 +27,7 @@ func newRestMiddleware(
 }
 
 // NewRESTServer new an HTTP server.
+// Deprecated: 改用 NewGRPCGatewayServer + grpc-gateway 方案。
 func NewRESTServer(
 	logger log.Logger,
 

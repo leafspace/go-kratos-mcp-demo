@@ -12,7 +12,7 @@ import (
 
 	"go-kratos-mcp-demo/api/gen/go/conf"
 
-	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/tx7do/kratos-transport/transport/mcp"
 )
 
@@ -33,7 +33,7 @@ func init() {
 func newApp(
 	lg log.Logger,
 	ms *mcp.Server,
-	hs *http.Server,
+	gateway transport.Server,
 ) *kratos.App {
 	app := kratos.New(
 		kratos.Name("recommend-mcp-server"),
@@ -41,7 +41,7 @@ func newApp(
 		kratos.Logger(lg),
 		kratos.Server(
 			ms,
-			hs,
+			gateway,
 		),
 	)
 
